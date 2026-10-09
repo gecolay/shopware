@@ -627,10 +627,30 @@ class AdministrationControllerTest extends TestCase
     {
         $controller = $this->createAdministrationController();
 
-        $response = $controller->snippets(new Request(query: ['locale' => 'de-DE']));
+        $response = $controller->snippets(new Request(query: ['locale' => 'fr-FR']));
 
         static::assertNotFalse($response->getContent());
-        static::assertJsonStringEqualsJsonString('{"de-DE":[],"en-GB":[]}', $response->getContent());
+        static::assertJsonStringEqualsJsonString('{"fr-FR":[],"en-GB":[]}', $response->getContent());
+    }
+
+    #[DataProvider('defaultLocaleProvider')]
+    public function testSnippetFinderDoesNotAddEnglishSnippetForDefaultLocales(string $locale): void
+    {
+        $controller = $this->createAdministrationController();
+
+        $response = $controller->snippets(new Request(query: ['locale' => $locale]));
+
+        static::assertNotFalse($response->getContent());
+        static::assertJsonStringEqualsJsonString('{"' . $locale . '":[]}', $response->getContent());
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function defaultLocaleProvider(): iterable
+    {
+        yield 'german' => ['de-DE'];
+        yield 'english' => ['en-GB'];
     }
 
     public function testGetUnauthenticatedSnippetsWithoutAuthentication(): void
