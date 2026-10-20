@@ -148,7 +148,7 @@ class ContextSwitchRoute extends AbstractContextSwitchRoute
 
         $customer = $context->getCustomer();
         $this->contextPersister->save(
-            $context->getToken(),
+            $context->getSessionToken(),
             $parameters,
             $salesChannelId,
             $customer && $context->getPermissions() === [] ? $customer->getId() : null
@@ -161,14 +161,14 @@ class ContextSwitchRoute extends AbstractContextSwitchRoute
         $context = $this->contextService->get(
             new SalesChannelContextServiceParameters(
                 $context->getSalesChannelId(),
-                $context->getToken()
+                $context->getSessionToken()
             )
         );
 
         $event = new SalesChannelContextSwitchEvent($context, $data);
         $this->eventDispatcher->dispatch($event);
 
-        return new ContextTokenResponse($context->getToken(), $changeUrl);
+        return new ContextTokenResponse($context->getSessionToken(), $changeUrl);
     }
 
     /**

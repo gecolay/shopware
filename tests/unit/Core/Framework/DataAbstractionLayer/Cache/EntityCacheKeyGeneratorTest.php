@@ -24,7 +24,9 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Currency\CurrencyEntity;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextSessionService;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\SalesChannel\SalesChannelContextSession;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Shopware\Core\System\Tax\TaxCollection;
 use Shopware\Core\Test\Generator;
@@ -149,6 +151,7 @@ class DummyContext extends SalesChannelContext
         parent::__construct(
             new Context($source, [], Defaults::CURRENCY, [Defaults::LANGUAGE_SYSTEM], Defaults::LIVE_VERSION, 1.0, true, CartPrice::TAX_STATE_GROSS),
             'token',
+            new SalesChannelContextSession(SalesChannelContextSessionService::getNewToken()),
             'domain-id',
             (new SalesChannelEntity())->assign(['id' => TestDefaults::SALES_CHANNEL]),
             (new CurrencyEntity())->assign(['id' => Defaults::CURRENCY]),

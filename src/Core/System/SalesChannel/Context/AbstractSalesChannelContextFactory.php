@@ -12,6 +12,7 @@ abstract class AbstractSalesChannelContextFactory
     abstract public function getDecorated(): AbstractSalesChannelContextFactory;
 
     /**
+     * @param SessionToken $token
      * @param array<string, string|array<string,bool>|CustomerAddressEntity|null> $options
      */
     abstract public function create(string $token, string $salesChannelId, array $options = []): SalesChannelContext;

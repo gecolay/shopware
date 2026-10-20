@@ -61,7 +61,7 @@ class SitemapGenerateCommand extends Command
 
         foreach ($salesChannels as $salesChannel) {
             foreach ($this->salesChannelLoader->getLanguageIds($salesChannel) as $languageId) {
-                $salesChannelContext = $this->salesChannelContextFactory->create('', $salesChannel->getId(), [SalesChannelContextService::LANGUAGE_ID => $languageId]);
+                $salesChannelContext = $this->salesChannelContextFactory->create(SalesChannelContextService::getNewToken(), $salesChannel->getId(), [SalesChannelContextService::LANGUAGE_ID => $languageId]);
 
                 $output->writeln(\sprintf('Generating sitemaps for sales channel %s (%s) with and language %s...', $salesChannel->getId(), $salesChannel->getName() ?? '', $languageId));
 

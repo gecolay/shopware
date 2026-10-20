@@ -27,6 +27,7 @@ use Shopware\Core\Framework\Routing\StoreApiRouteScope;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\Profiling\Profiler;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -81,7 +82,7 @@ class ProductShippingCostRoute extends AbstractProductShippingCostRoute
             $clonedContext = clone $salesChannelContext;
             $product = $this->loadProduct($productId, $clonedContext);
 
-            $cart = (new Cart(Uuid::randomHex()))
+            $cart = (new Cart(SalesChannelContextService::getNewToken()))
                 ->add(new LineItem($productId, LineItem::PRODUCT_LINE_ITEM_TYPE, $productId));
             $cart->getData()->set('product-' . $productId, $product);
 

@@ -10,7 +10,6 @@ use Shopware\Core\Framework\Adapter\Twig\TemplateFinder;
 use Shopware\Core\Framework\Adapter\Twig\TwigEnvironment;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Log\Package;
-use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -54,7 +53,7 @@ final readonly class DocumentTemplateRenderer
         $locale = $input->order->getLanguage()?->getLocale()?->getCode() ?? '';
 
         $salesChannelContext = $this->contextFactory->create(
-            Uuid::randomHex(),
+            SalesChannelContextService::getNewToken(),
             $salesChannelId,
             [SalesChannelContextService::LANGUAGE_ID => $languageId],
         );

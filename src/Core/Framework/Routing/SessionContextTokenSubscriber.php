@@ -7,9 +7,9 @@ use Shopware\Core\Checkout\Customer\Event\CustomerLogoutEvent;
 use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Routing\Event\SalesChannelContextResolvedEvent;
-use Shopware\Core\Framework\Util\Random;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\SalesChannelRequest;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextSessionService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
@@ -106,15 +106,15 @@ class SessionContextTokenSubscriber implements EventSubscriberInterface
 
     public function onCustomerLogin(CustomerLoginEvent $event): void
     {
-        $this->rotate($event->getSalesChannelId(), $event->getContextToken());
+        $this->rotate($event->getSalesChannelId(), $event->getSessionToken());
     }
 
     public function onCustomerLogout(CustomerLogoutEvent $event): void
     {
         // the logout route already rotated the context and returns that token in its body
         $token = Feature::isActive('v6.8.0.0')
-            ? $event->getSalesChannelContext()->getToken()
-            : Random::getAlphanumericString(32);
+            ? $event->getSalesChannelContext()->getSessionToken()
+            : SalesChannelContextSessionService::getNewToken();
 
         $this->rotate($event->getSalesChannelId(), $token, true);
     }
@@ -123,11 +123,11 @@ class SessionContextTokenSubscriber implements EventSubscriberInterface
     {
         $context = $event->getSalesChannelContext();
 
-        if ($event->getUsedToken() === $context->getToken()) {
+        if ($event->getUsedToken() === $context->getSessionToken()) {
             return;
         }
 
-        $this->rotate($context->getSalesChannelId(), $context->getToken());
+        $this->rotate($context->getSalesChannelId(), $context->getSessionToken());
     }
 
     /**
@@ -154,6 +154,9 @@ class SessionContextTokenSubscriber implements EventSubscriberInterface
         return $this->routeScopeRegistry;
     }
 
+    /**
+     * @param SessionToken $token
+     */
     private function rotate(string $salesChannelId, string $token, bool $destroyOldSession = false): void
     {
         $mainRequest = $this->requestStack->getMainRequest();

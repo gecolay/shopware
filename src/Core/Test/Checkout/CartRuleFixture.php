@@ -14,6 +14,7 @@ use Shopware\Core\Checkout\Cart\Tax\Struct\TaxRuleCollection;
 use Shopware\Core\Content\Product\ProductDefinition;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
 
 /**
  * Builds the line items and carts the cart rule tests match against. Every method returns a fresh object,
@@ -113,7 +114,7 @@ final class CartRuleFixture
 
     public static function createCart(LineItemCollection $lineItemCollection): Cart
     {
-        $cart = new Cart(Uuid::randomHex());
+        $cart = new Cart(SalesChannelContextService::getNewToken());
         $cart->addLineItems($lineItemCollection);
 
         return $cart;

@@ -10,7 +10,6 @@ use Shopware\Core\Checkout\Cart\AbstractCartPersister;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\DataAbstractionLayer\Doctrine\RetryableQuery;
 use Shopware\Core\Framework\Log\Package;
-use Shopware\Core\Framework\Util\Random;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\Event\SalesChannelContextTokenChangeEvent;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -39,6 +38,7 @@ class SalesChannelContextPersister
      *
      * @see \Shopware\Tests\Integration\Core\System\SalesChannel\Context\SalesChannelContextPersisterTest
      *
+     * @param SessionToken $token
      * @param array<string, mixed> $newParameters
      */
     public function save(string $token, array $newParameters, string $salesChannelId, ?string $customerId = null): void
@@ -91,6 +91,9 @@ class SalesChannelContextPersister
         }
     }
 
+    /**
+     * @param SessionToken $token
+     */
     public function delete(string $token, string $salesChannelId, ?string $customerId = null): void
     {
         $this->connection->executeStatement(
@@ -101,9 +104,13 @@ class SalesChannelContextPersister
         );
     }
 
+    /**
+     * @param SessionToken $oldToken
+     * @return SessionToken
+     */
     public function replace(string $oldToken, SalesChannelContext $context): string
     {
-        $newToken = Random::getAlphanumericString(32);
+        $newToken = SalesChannelContextSessionService::getNewToken();
 
         $affected = $this->connection->executeStatement(
             'UPDATE `sales_channel_api_context`
@@ -138,6 +145,7 @@ class SalesChannelContextPersister
     }
 
     /**
+     * @param SessionToken $token
      * @return array<string, mixed>
      */
     public function load(string $token, string $salesChannelId, ?string $customerId = null): array

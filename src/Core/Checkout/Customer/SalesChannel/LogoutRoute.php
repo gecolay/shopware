@@ -10,10 +10,10 @@ use Shopware\Core\Framework\Extensions\ExtensionDispatcher;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Plugin\Exception\DecorationPatternException;
 use Shopware\Core\Framework\Routing\StoreApiRouteScope;
-use Shopware\Core\Framework\Util\Random;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextPersister;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextServiceInterface;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextServiceParameters;
 use Shopware\Core\System\SalesChannel\ContextTokenResponse;
@@ -78,7 +78,7 @@ class LogoutRoute extends AbstractLogoutRoute
         $context = $this->contextService->get(
             new SalesChannelContextServiceParameters(
                 $context->getSalesChannelId(),
-                Random::getAlphanumericString(32),
+                SalesChannelContextService::getNewToken(),
             )
         );
 
@@ -90,7 +90,7 @@ class LogoutRoute extends AbstractLogoutRoute
 
     private function shouldDelete(SalesChannelContext $context): bool
     {
-        $config = $this->systemConfig->get('core.loginRegistration.invalidateSessionOnLogOut', $context->getSalesChannelId());
+        $config = $this->systemConfig->getBool('core.loginRegistration.invalidateSessionOnLogOut', $context->getSalesChannelId());
 
         if ($config) {
             return true;

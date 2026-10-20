@@ -2,7 +2,6 @@
 
 namespace Shopware\Tests\Unit\Core\Content\ProductExport\Service;
 
-use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
@@ -78,8 +77,6 @@ class ProductExportGeneratorTest extends TestCase
 
     private MockObject&SalesChannelContextPersister $contextPersister;
 
-    private MockObject&Connection $connection;
-
     private MockObject&SeoUrlPlaceholderHandlerInterface $seoUrlPlaceholderHandler;
 
     private Stub&Environment $twig;
@@ -111,7 +108,6 @@ class ProductExportGeneratorTest extends TestCase
         $this->salesChannelContextService = $this->createMock(SalesChannelContextServiceInterface::class);
         $this->translator = $this->createMock(AbstractTranslator::class);
         $this->contextPersister = $this->createMock(SalesChannelContextPersister::class);
-        $this->connection = $this->createMock(Connection::class);
         $this->seoUrlPlaceholderHandler = $this->createMock(SeoUrlPlaceholderHandlerInterface::class);
         $this->twig = static::createStub(Environment::class);
         $this->productDefinition = $productDefinition;
@@ -125,12 +121,12 @@ class ProductExportGeneratorTest extends TestCase
         $productExport = $this->getProductExportEntity();
 
         $this->contextPersister->expects($this->once())->method('save');
+        $this->contextPersister->expects($this->once())->method('delete');
         $this->salesChannelContextService->expects($this->once())->method('get');
         $this->parserFactory->expects($this->once())->method('getParser');
         $this->productStreamBuilder->expects($this->once())->method('enrichCriteria');
         $this->translator->expects($this->once())->method('injectSettings');
         $this->languageLocaleProvider->expects($this->once())->method('getLocaleForLanguageId');
-        $this->connection->expects($this->once())->method('delete');
         $this->productExportRender->expects($this->never())->method('renderBody');
         $this->productExportValidator->expects($this->never())->method('validate');
         $this->seoUrlPlaceholderHandler->expects($this->never())->method('replace');
@@ -156,7 +152,6 @@ class ProductExportGeneratorTest extends TestCase
             $this->salesChannelContextService,
             $this->translator,
             $this->contextPersister,
-            $this->connection,
             1,
             $this->seoUrlPlaceholderHandler,
             $this->twig,
@@ -176,12 +171,12 @@ class ProductExportGeneratorTest extends TestCase
         $productExport = $this->getProductExportEntity();
 
         $this->contextPersister->expects($this->once())->method('save');
+        $this->contextPersister->expects($this->never())->method('delete');
         $this->salesChannelContextService->expects($this->once())->method('get');
         $this->productStreamBuilder->expects($this->once())->method('enrichCriteria');
         $this->translator->expects($this->once())->method('injectSettings');
         $this->languageLocaleProvider->expects($this->once())->method('getLocaleForLanguageId');
         $this->productRepository->expects($this->never())->method('search');
-        $this->connection->expects($this->never())->method('delete');
         $this->productExportRender->expects($this->never())->method('renderBody');
         $this->productExportValidator->expects($this->never())->method('validate');
         $this->seoUrlPlaceholderHandler->expects($this->never())->method('replace');
@@ -204,7 +199,6 @@ class ProductExportGeneratorTest extends TestCase
             $this->salesChannelContextService,
             $this->translator,
             $this->contextPersister,
-            $this->connection,
             1,
             $this->seoUrlPlaceholderHandler,
             $this->twig,
@@ -230,7 +224,7 @@ class ProductExportGeneratorTest extends TestCase
         $this->translator->expects($this->once())->method('injectSettings');
         $this->languageLocaleProvider->expects($this->once())->method('getLocaleForLanguageId');
         $this->productRepository->expects($this->once())->method('search');
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
         $this->productExportRender->expects($this->never())->method('renderBody');
         $this->productExportValidator->expects($this->never())->method('validate');
         $this->seoUrlPlaceholderHandler->expects($this->never())->method('replace');
@@ -253,7 +247,6 @@ class ProductExportGeneratorTest extends TestCase
             $this->salesChannelContextService,
             $this->translator,
             $this->contextPersister,
-            $this->connection,
             1,
             $this->seoUrlPlaceholderHandler,
             $this->twig,
@@ -334,9 +327,9 @@ class ProductExportGeneratorTest extends TestCase
 
         $this->breadcrumbBuilder->expects($this->never())->method('getProductSeoCategory');
 
-        $this->connection->expects($this->once())
+        $this->contextPersister->expects($this->once())
             ->method('delete')
-            ->with('sales_channel_api_context', static::arrayHasKey('token'));
+            ->with(static::isString(), $productExport->getStorefrontSalesChannelId());
 
         $generator = $this->createGenerator();
         $result = $generator->generate($productExport, new ExportBehavior(false, false, false, false, false));
@@ -399,9 +392,9 @@ class ProductExportGeneratorTest extends TestCase
 
         $this->breadcrumbBuilder->expects($this->never())->method('getProductSeoCategory');
 
-        $this->connection->expects($this->once())
+        $this->contextPersister->expects($this->once())
             ->method('delete')
-            ->with('sales_channel_api_context', static::arrayHasKey('token'));
+            ->with(static::isString(), $productExport->getStorefrontSalesChannelId());
 
         $generator = $this->createGenerator();
         $result = $generator->generate($productExport, new ExportBehavior(false, false, false, false, false));
@@ -423,6 +416,7 @@ class ProductExportGeneratorTest extends TestCase
         $product = $this->createProduct('product-id');
 
         $this->contextPersister->expects($this->once())->method('save');
+        $this->contextPersister->expects($this->never())->method('delete');
         $this->salesChannelContextService->expects($this->once())->method('get')->willReturn($context);
         $this->languageLocaleProvider->expects($this->once())->method('getLocaleForLanguageId')->with('languageId')->willReturn('en-GB');
         $this->translator->expects($this->once())->method('injectSettings');
@@ -445,7 +439,6 @@ class ProductExportGeneratorTest extends TestCase
 
         $this->seoUrlPlaceholderHandler->expects($this->never())->method('replace');
         $this->productExportValidator->expects($this->never())->method('validate');
-        $this->connection->expects($this->never())->method('delete');
         $this->breadcrumbBuilder->expects($this->never())->method('getProductSeoCategory');
 
         $generator = $this->createGenerator();
@@ -467,12 +460,12 @@ class ProductExportGeneratorTest extends TestCase
             ->willReturn(static::createStub(TwigVariableParser::class));
 
         $this->contextPersister->expects($this->never())->method('save');
+        $this->contextPersister->expects($this->never())->method('delete');
         $this->salesChannelContextService->expects($this->never())->method('get');
         $this->productStreamBuilder->expects($this->never())->method('enrichCriteria');
         $this->translator->expects($this->never())->method('injectSettings');
         $this->languageLocaleProvider->expects($this->never())->method('getLocaleForLanguageId');
         $this->productRepository->expects($this->never())->method('search');
-        $this->connection->expects($this->never())->method('delete');
         $this->productExportRender->expects($this->never())->method('renderBody');
         $this->productExportValidator->expects($this->never())->method('validate');
         $this->seoUrlPlaceholderHandler->expects($this->never())->method('replace');
@@ -511,7 +504,7 @@ class ProductExportGeneratorTest extends TestCase
             ->with('', '', $context)
             ->willReturn('');
         $this->productExportValidator->expects($this->never())->method('validate');
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
         $this->breadcrumbBuilder->expects($this->never())->method('getProductSeoCategory');
 
         $generator = $this->createGenerator();
@@ -555,7 +548,7 @@ class ProductExportGeneratorTest extends TestCase
         $this->productExportRender->expects($this->once())->method('renderBody')->willReturn('product');
         $this->seoUrlPlaceholderHandler->expects($this->once())->method('replace')->with('product', '', $context)->willReturnArgument(0);
         $this->productExportValidator->expects($this->once())->method('validate')->with($productExport, 'product')->willReturn([]);
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
         $this->breadcrumbBuilder->expects($this->never())->method('getProductSeoCategory');
 
         $result = $this->createGenerator()->generate($productExport, new ExportBehavior(false, false, false, false, false));
@@ -573,6 +566,7 @@ class ProductExportGeneratorTest extends TestCase
         $context = $this->createSalesChannelContext();
 
         $this->contextPersister->expects($this->once())->method('save');
+        $this->contextPersister->expects($this->never())->method('delete');
         $this->salesChannelContextService->expects($this->once())->method('get')->willReturn($context);
         $this->languageLocaleProvider->expects($this->once())->method('getLocaleForLanguageId')->with('languageId')->willReturn('en-GB');
         $this->translator->expects($this->once())->method('injectSettings');
@@ -580,7 +574,6 @@ class ProductExportGeneratorTest extends TestCase
             ->method('enrichCriteria')
             ->with(static::isInstanceOf(Criteria::class), $productStreamId, $context->getContext())
             ->willThrowException(new NoFilterException($productStreamId));
-        $this->connection->expects($this->never())->method('delete');
         $this->productRepository->expects($this->never())->method('search');
         $this->productExportRender->expects($this->never())->method('renderBody');
         $this->productExportValidator->expects($this->never())->method('validate');
@@ -626,7 +619,7 @@ class ProductExportGeneratorTest extends TestCase
         $this->productExportRender->expects($this->once())->method('renderBody')->willReturn('product');
         $this->seoUrlPlaceholderHandler->expects($this->once())->method('replace')->willReturnArgument(0);
         $this->productExportValidator->expects($this->once())->method('validate')->willReturn([]);
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
         $this->breadcrumbBuilder->expects($this->never())->method('getProductSeoCategory');
 
         $result = $this->createGenerator()->generate($productExport, new ExportBehavior(false, false, false, false, false));
@@ -666,7 +659,7 @@ class ProductExportGeneratorTest extends TestCase
         $this->productExportRender->expects($this->once())->method('renderBody')->willReturn('variant');
         $this->seoUrlPlaceholderHandler->expects($this->once())->method('replace')->willReturnArgument(0);
         $this->productExportValidator->expects($this->once())->method('validate')->willReturn([]);
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
         $this->breadcrumbBuilder->expects($this->never())->method('getProductSeoCategory');
 
         $result = $this->createGenerator()->generate($productExport, new ExportBehavior(false, false, false, false, false));
@@ -708,7 +701,7 @@ class ProductExportGeneratorTest extends TestCase
             ->method('validate')
             ->with($productExport, "{\"id\":\"variant-a\",\"url\":\"https://example.com/a\"}\n{\"id\":\"variant-b\",\"url\":\"https://example.com/b\"}\n")
             ->willReturn([]);
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
         $this->breadcrumbBuilder->expects($this->never())->method('getProductSeoCategory');
 
         $result = $this->createGenerator()->generate($productExport, new ExportBehavior(false, false, false, false, false));
@@ -739,7 +732,7 @@ class ProductExportGeneratorTest extends TestCase
             ->willReturn(" \n\t ");
         $this->seoUrlPlaceholderHandler->expects($this->once())->method('replace')->with('', '', $context)->willReturn('');
         $this->productExportValidator->expects($this->never())->method('validate');
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
         $this->breadcrumbBuilder->expects($this->never())->method('getProductSeoCategory');
 
         $result = $this->createGenerator()->generate($productExport, new ExportBehavior(false, false, true, false, false));
@@ -770,7 +763,7 @@ class ProductExportGeneratorTest extends TestCase
         $this->productExportRender->expects($this->once())->method('renderFooter')->willReturn('footer');
         $this->seoUrlPlaceholderHandler->expects($this->once())->method('replace')->with('headerproductfooter', '', $context)->willReturnArgument(0);
         $this->productExportValidator->expects($this->once())->method('validate')->with($productExport, 'headerproductfooter')->willReturn([]);
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
         $this->breadcrumbBuilder->expects($this->never())->method('getProductSeoCategory');
 
         $result = $this->createGenerator()->generate($productExport, new ExportBehavior(false, false, true));
@@ -803,7 +796,7 @@ class ProductExportGeneratorTest extends TestCase
         $this->productExportRender->expects($this->once())->method('renderBody')->willReturn('product');
         $this->seoUrlPlaceholderHandler->expects($this->once())->method('replace')->willReturnArgument(0);
         $this->productExportValidator->expects($this->never())->method('validate');
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
         $this->breadcrumbBuilder->expects($this->never())->method('getProductSeoCategory');
 
         $result = $this->createGenerator()->generate($productExport, new ExportBehavior(false, false, true, false, false));
@@ -836,7 +829,7 @@ class ProductExportGeneratorTest extends TestCase
         $this->productExportRender->expects($this->never())->method('renderBody');
         $this->seoUrlPlaceholderHandler->expects($this->once())->method('replace')->willReturnArgument(0);
         $this->productExportValidator->expects($this->never())->method('validate');
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
         $this->breadcrumbBuilder->expects($this->never())->method('getProductSeoCategory');
 
         $result = $this->createGenerator()->generate($productExport, new ExportBehavior(false, false, true, false, false, 41));
@@ -879,7 +872,7 @@ class ProductExportGeneratorTest extends TestCase
         $this->productExportRender->expects($this->once())->method('renderBody')->willReturn('rendered');
         $this->seoUrlPlaceholderHandler->expects($this->once())->method('replace')->willReturnArgument(0);
         $this->productExportValidator->expects($this->once())->method('validate')->willReturn([]);
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
 
         $this->createGenerator()->generate($productExport, new ExportBehavior(false, false, false, false, false));
 
@@ -918,7 +911,7 @@ class ProductExportGeneratorTest extends TestCase
         $this->productExportRender->expects($this->once())->method('renderBody')->willReturn('{"id":"product-id"}');
         $this->seoUrlPlaceholderHandler->expects($this->once())->method('replace')->willReturnArgument(0);
         $this->productExportValidator->expects($this->once())->method('validate')->willReturn([]);
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
 
         $this->createGenerator()->generate($productExport, new ExportBehavior(false, false, false, false, false));
 
@@ -950,7 +943,7 @@ class ProductExportGeneratorTest extends TestCase
         $this->productExportRender->expects($this->once())->method('renderBody')->willReturn('rendered');
         $this->seoUrlPlaceholderHandler->expects($this->once())->method('replace')->willReturnArgument(0);
         $this->productExportValidator->expects($this->once())->method('validate')->willReturn([]);
-        $this->connection->expects($this->once())->method('delete');
+        $this->contextPersister->expects($this->once())->method('delete');
 
         $this->createGenerator()->generate($productExport, new ExportBehavior(false, false, false, false, false));
 
@@ -968,7 +961,6 @@ class ProductExportGeneratorTest extends TestCase
             $this->salesChannelContextService,
             $this->translator,
             $this->contextPersister,
-            $this->connection,
             1,
             $this->seoUrlPlaceholderHandler,
             $this->twig,

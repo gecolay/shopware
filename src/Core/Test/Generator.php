@@ -31,7 +31,10 @@ use Shopware\Core\System\Country\Aggregate\CountryState\CountryStateEntity;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\Currency\CurrencyEntity;
 use Shopware\Core\System\SalesChannel\Context\LanguageInfo;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextSessionService;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\SalesChannel\SalesChannelContextSession;
 use Shopware\Core\System\SalesChannel\SalesChannelDefinition;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Shopware\Core\System\Tax\TaxCollection;
@@ -60,6 +63,7 @@ class Generator extends TestCase
     final public const LANGUAGE_INFO_LOCALE_CODE = 'en-GB';
 
     /**
+     * @param ContextToken $token
      * @param array<string, string[]> $areaRuleIds
      * @param array<array-key, mixed> $overrides
      */
@@ -87,6 +91,8 @@ class Generator extends TestCase
         $baseContext ??= Context::createDefaultContext();
 
         $token ??= self::TOKEN;
+
+        $session = new SalesChannelContextSession(SalesChannelContextSessionService::getNewToken());
 
         $domainId ??= self::DOMAIN;
 
@@ -188,6 +194,7 @@ class Generator extends TestCase
         $salesChannelContext = new SalesChannelContext(
             $baseContext,
             $token,
+            $session,
             $domainId,
             $salesChannel,
             $currency,
@@ -212,7 +219,10 @@ class Generator extends TestCase
 
     public static function createCart(): Cart
     {
-        $cart = new Cart('test');
+        /** @var ContextToken */
+        $contextToken = 'test';
+
+        $cart = new Cart($contextToken);
         $cart->setLineItems(
             new LineItemCollection([
                 (new LineItem('A', 'product', 'A', 27))

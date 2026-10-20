@@ -14,8 +14,10 @@ use Shopware\Core\Framework\Routing\RoutingException;
 use Shopware\Core\Framework\Routing\TrustedOriginUrlGenerator;
 use Shopware\Core\Framework\Util\Random;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextServiceInterface;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextServiceParameters;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextSessionService;
 use Shopware\Core\System\SalesChannel\SalesChannelCollection;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Shopware\Core\System\User\Aggregate\UserRecovery\UserRecoveryCollection;
@@ -97,7 +99,7 @@ class UserRecoveryService
         $salesChannelContext = $this->salesChannelContextService->get(
             new SalesChannelContextServiceParameters(
                 $salesChannel->getId(),
-                Uuid::randomHex(),
+                SalesChannelContextSessionService::getNewToken(),
                 $salesChannel->getLanguageId(),
                 $salesChannel->getCurrencyId(),
                 null,

@@ -95,7 +95,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             service(SalesChannelContextService::class),
             service(Translator::class),
             service(SalesChannelContextPersister::class),
-            service(Connection::class),
             param('product_export.read_buffer_size'),
             service(SeoUrlPlaceholderHandlerInterface::class),
             service('twig'),
@@ -140,7 +139,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
             service(Translator::class),
             service(SalesChannelContextService::class),
             service(SalesChannelContextPersister::class),
-            service(Connection::class),
             service(LanguageLocaleCodeProvider::class),
             service(ClockInterface::class),
         ])

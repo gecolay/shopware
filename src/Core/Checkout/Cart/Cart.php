@@ -64,6 +64,8 @@ class Cart extends Struct
     private ?CartBehavior $behavior = null;
 
     /**
+     * @param ContextToken $token
+     *
      * @internal
      */
     public function __construct(protected string $token)
@@ -87,11 +89,17 @@ class Cart extends Struct
         $this->errors = new ErrorCollection($errors->getElements());
     }
 
+    /**
+     * @return ContextToken
+     */
     public function getToken(): string
     {
         return $this->token;
     }
 
+    /**
+     * @param ContextToken $token
+     */
     public function setToken(string $token): void
     {
         if ($token !== $this->token) {

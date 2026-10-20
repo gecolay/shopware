@@ -7,6 +7,7 @@ use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextSessionService;
 use Shopware\Core\System\SalesChannel\Exception\NoContextDataException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
@@ -66,7 +67,7 @@ class MailThemeConfigSubscriber implements EventSubscriberInterface
 
         try {
             $salesChannelContext = $this->salesChannelContextFactory->create(
-                Uuid::randomHex(),
+                SalesChannelContextSessionService::getNewToken(),
                 $salesChannelId,
                 $options
             );

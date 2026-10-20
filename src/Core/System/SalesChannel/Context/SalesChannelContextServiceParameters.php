@@ -9,6 +9,9 @@ use Shopware\Core\Framework\Struct\Struct;
 #[Package('framework')]
 class SalesChannelContextServiceParameters extends Struct
 {
+    /**
+     * @param SessionToken $token
+     */
     public function __construct(
         protected string $salesChannelId,
         protected string $token,
@@ -28,6 +31,9 @@ class SalesChannelContextServiceParameters extends Struct
         return $this->salesChannelId;
     }
 
+    /**
+     * @return SessionToken
+     */
     public function getToken(): string
     {
         return $this->token;

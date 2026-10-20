@@ -27,7 +27,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\Validation\EntityExists;
 use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Routing\ApiRouteScope;
-use Shopware\Core\Framework\Util\Random;
 use Shopware\Core\Framework\Validation\BuildValidationEvent;
 use Shopware\Core\Framework\Validation\Constraint\Uuid;
 use Shopware\Core\Framework\Validation\DataBag\DataBag;
@@ -349,12 +348,15 @@ class SalesChannelProxyController extends AbstractController
         $this->validator->validate($data->all(), $definition);
     }
 
+    /**
+     * @return ContextToken
+     */
     private function getContextToken(Request $request): string
     {
         $contextToken = $request->headers->get(PlatformRequest::HEADER_CONTEXT_TOKEN);
 
         if ($contextToken === null) {
-            $contextToken = Random::getAlphanumericString(32);
+            $contextToken = SalesChannelContextService::getNewToken();
         }
 
         return $contextToken;
@@ -417,23 +419,20 @@ class SalesChannelProxyController extends AbstractController
         $data->set(self::CUSTOMER_ID, $customerId);
 
         $definition = new DataValidationDefinition('context_switch');
-        $parameters = $data->only(
-            self::CUSTOMER_ID
-        );
 
         $customerCriteria = new Criteria();
-        $customerCriteria->addFilter(new EqualsFilter('customer.id', $parameters[self::CUSTOMER_ID]));
+        $customerCriteria->addFilter(new EqualsFilter('customer.id', $customerId));
 
         $definition
             ->add(self::CUSTOMER_ID, new EntityExists(entity: 'customer', context: $context->getContext(), criteria: $customerCriteria))
         ;
 
-        $this->validator->validate($parameters, $definition);
+        $this->validator->validate($data->all(), $definition);
 
         $isSwitchNewCustomer = true;
         if ($context->getCustomer()) {
             // Check if customer switch to another customer or not
-            $isSwitchNewCustomer = $context->getCustomerId() !== $parameters[self::CUSTOMER_ID];
+            $isSwitchNewCustomer = $context->getCustomerId() !== $customerId;
         }
 
         if (!$isSwitchNewCustomer) {
@@ -443,7 +442,7 @@ class SalesChannelProxyController extends AbstractController
         $this->contextPersister->save(
             $context->getToken(),
             [
-                'customerId' => $parameters[self::CUSTOMER_ID],
+                'customerId' => $customerId,
                 'billingAddressId' => null,
                 'shippingAddressId' => null,
                 'shippingMethodId' => null,
@@ -453,6 +452,7 @@ class SalesChannelProxyController extends AbstractController
             ],
             $context->getSalesChannelId()
         );
+
         $event = new SalesChannelContextSwitchEvent($context, $data);
         $this->eventDispatcher->dispatch($event);
     }

@@ -24,7 +24,7 @@ use Symfony\Contracts\Service\ResetInterface;
 class CartService implements ResetInterface
 {
     /**
-     * @var Cart[]
+     * @var array<ContextToken, Cart>
      */
     private array $cart = [];
 
@@ -50,11 +50,17 @@ class CartService implements ResetInterface
         $this->cart[$cart->getToken()] = $cart;
     }
 
+    /**
+     * @param ContextToken $token
+     */
     public function hasCart(string $token): bool
     {
         return isset($this->cart[$token]);
     }
 
+    /**
+     * @param ContextToken $token
+     */
     public function createNew(string $token): Cart
     {
         $cart = $this->cartFactory->createNew($token);
@@ -62,6 +68,9 @@ class CartService implements ResetInterface
         return $this->cart[$cart->getToken()] = $cart;
     }
 
+    /**
+     * @param ContextToken $token
+     */
     public function getCart(
         string $token,
         SalesChannelContext $context,

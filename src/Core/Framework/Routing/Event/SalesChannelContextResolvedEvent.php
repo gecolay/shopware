@@ -14,6 +14,9 @@ use Symfony\Contracts\EventDispatcher\Event;
 #[Package('framework')]
 class SalesChannelContextResolvedEvent extends Event implements ShopwareSalesChannelEvent
 {
+    /**
+     * @param SessionToken $usedToken
+     */
     public function __construct(
         private readonly SalesChannelContext $salesChannelContext,
         private readonly string $usedToken
@@ -30,6 +33,9 @@ class SalesChannelContextResolvedEvent extends Event implements ShopwareSalesCha
         return $this->salesChannelContext->getContext();
     }
 
+    /**
+     * @return SessionToken
+     */
     public function getUsedToken(): string
     {
         return $this->usedToken;

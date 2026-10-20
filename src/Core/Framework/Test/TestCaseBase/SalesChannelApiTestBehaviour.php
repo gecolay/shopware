@@ -13,11 +13,12 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
-use Shopware\Core\Framework\Util\Random;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\System\Country\CountryCollection;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextSessionService;
 use Shopware\Core\System\SalesChannel\SalesChannelCollection;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\Test\TestDefaults;
@@ -78,7 +79,7 @@ trait SalesChannelApiTestBehaviour
         $salesChannelApiBrowser = KernelLifecycleManager::createBrowser($kernel);
         $salesChannelApiBrowser->setServerParameters([
             'HTTP_ACCEPT' => 'application/json',
-            'HTTP_' . PlatformRequest::HEADER_CONTEXT_TOKEN => Random::getAlphanumericString(32),
+            'HTTP_' . PlatformRequest::HEADER_CONTEXT_TOKEN => SalesChannelContextSessionService::getNewToken(),
         ]);
 
         $this->authorizeSalesChannelBrowser($salesChannelApiBrowser, $salesChannelOverride);
@@ -155,7 +156,7 @@ trait SalesChannelApiTestBehaviour
         $salesChannelApiBrowser = KernelLifecycleManager::createBrowser($kernel, $enableReboot);
         $salesChannelApiBrowser->setServerParameters([
             'HTTP_ACCEPT' => 'application/json',
-            'HTTP_' . PlatformRequest::HEADER_CONTEXT_TOKEN => Random::getAlphanumericString(32),
+            'HTTP_' . PlatformRequest::HEADER_CONTEXT_TOKEN => SalesChannelContextSessionService::getNewToken(),
         ]);
 
         $this->authorizeSalesChannelBrowser($salesChannelApiBrowser, $salesChannelOverrides);
@@ -269,7 +270,7 @@ trait SalesChannelApiTestBehaviour
     private function createContext(array $salesChannel, array $options): SalesChannelContext
     {
         $context = static::getContainer()->get(SalesChannelContextFactory::class)
-            ->create(Uuid::randomHex(), $salesChannel['id'], $options);
+            ->create(SalesChannelContextService::getNewToken(), $salesChannel['id'], $options);
 
         $ruleLoader = static::getContainer()->get(CartRuleLoader::class);
         $ruleLoader->loadByToken($context, $context->getToken());

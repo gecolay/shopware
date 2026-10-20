@@ -3,16 +3,16 @@
 namespace Shopware\Core\Framework\Routing;
 
 use Shopware\Core\Framework\Log\Package;
-use Shopware\Core\Framework\Util\Random;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\SalesChannelRequest;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextSessionService;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
- * The sales channel context token held in the PHP session.
+ * The sales channel context session token held in the PHP session.
  *
  * A storefront request (SalesChannelRequest::ATTRIBUTE_IS_SALES_CHANNEL_REQUEST) creates the session
  * and mints the first token. A Store API request declaring `sw-context-source: session` may only
@@ -75,7 +75,7 @@ class SessionContextTokenAccessor
         $token = $salesChannelId === null ? null : $this->readToken($session, $salesChannelId);
 
         if ($token === null) {
-            $token = Random::getAlphanumericString(32);
+            $token = SalesChannelContextSessionService::getNewToken();
             $this->writeToken($session, $salesChannelId, $token);
         }
 
@@ -94,7 +94,7 @@ class SessionContextTokenAccessor
      * instead of falling back to a fresh token, which a session based client would only see as an
      * empty cart.
      *
-     * @return string|null null when the request does not declare the session as its context source
+     * @return ?SessionToken null when the request does not declare the session as its context source
      */
     public function read(Request $request, string $salesChannelId): ?string
     {
@@ -125,7 +125,7 @@ class SessionContextTokenAccessor
 
         if ($token === null) {
             throw RoutingException::sessionContextNotResolvable(
-                'the session cookie does not resume a storefront session holding a context token for this sales channel'
+                'the session cookie does not resume a storefront session holding a session token for this sales channel'
             );
         }
 
@@ -135,6 +135,8 @@ class SessionContextTokenAccessor
     /**
      * Regenerates the session ID with every rotation and leaves the session open: Symfony's
      * AbstractSessionListener only emits the new session cookie for a session that is still started.
+     *
+     * @param SessionToken $token
      *
      * @return bool whether the request holds the session and it was updated
      */
@@ -237,6 +239,9 @@ class SessionContextTokenAccessor
         return PlatformRequest::HEADER_CONTEXT_TOKEN;
     }
 
+    /**
+     * @return ?SessionToken
+     */
     private function readToken(SessionInterface $session, ?string $salesChannelId): ?string
     {
         $token = $session->get($this->tokenKey($salesChannelId));
@@ -244,6 +249,9 @@ class SessionContextTokenAccessor
         return \is_string($token) && $token !== '' ? $token : null;
     }
 
+    /**
+     * @param SessionToken $token
+     */
     private function writeToken(SessionInterface $session, ?string $salesChannelId, string $token): void
     {
         $session->set($this->tokenKey($salesChannelId), $token);

@@ -42,7 +42,7 @@ class SalesChannelContextRequestRestorer
 
         $context = $this->contextService->get(new SalesChannelContextServiceParameters(
             $salesChannelId,
-            Uuid::randomHex(),
+            SalesChannelContextSessionService::getNewToken(),
             $languageId,
             $currencyId,
             $domainId,

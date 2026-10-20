@@ -25,6 +25,7 @@ use Shopware\Core\System\Currency\Aggregate\CurrencyCountryRounding\CurrencyCoun
 use Shopware\Core\System\SalesChannel\BaseSalesChannelContext;
 use Shopware\Core\System\SalesChannel\Event\SalesChannelContextPermissionsChangedEvent;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\SalesChannel\SalesChannelContextSession;
 use Shopware\Core\System\Tax\Aggregate\TaxRule\TaxRuleCollection;
 use Shopware\Core\System\Tax\Aggregate\TaxRule\TaxRuleEntity;
 use Shopware\Core\System\Tax\TaxCollection;
@@ -115,11 +116,14 @@ class SalesChannelContextFactory extends AbstractSalesChannelContextFactory
 
         $salesChannel = $base->getSalesChannel();
 
+        $session = new SalesChannelContextSession($token);
+
         $domainId = \is_string($options[SalesChannelContextService::DOMAIN_ID] ?? null) ? $options[SalesChannelContextService::DOMAIN_ID] : null;
 
         $salesChannelContext = new SalesChannelContext(
             $context,
-            $token,
+            SalesChannelContextService::getNewToken(), // TODO
+            $session,
             $domainId,
             $salesChannel,
             $base->getCurrency(),
@@ -146,7 +150,7 @@ class SalesChannelContextFactory extends AbstractSalesChannelContextFactory
         }
 
         if (\is_string($options[SalesChannelContextService::IMITATING_USER_ID] ?? null)) {
-            $salesChannelContext->setImitatingUserId($options[SalesChannelContextService::IMITATING_USER_ID]);
+            $session->setImitatingUserId($options[SalesChannelContextService::IMITATING_USER_ID]);
         }
 
         $salesChannelContext->setTaxState($this->taxDetector->getTaxState($salesChannelContext));

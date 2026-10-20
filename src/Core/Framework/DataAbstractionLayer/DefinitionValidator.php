@@ -109,6 +109,7 @@ class DefinitionValidator
         'deleted_apps',
         'migration',
         'sales_channel_api_context',
+        'sales_channel_api_session',
         'elasticsearch_index_task',
         'increment',
         'messenger_messages',

@@ -9,6 +9,7 @@ use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\System\SalesChannel\Context\AbstractSalesChannelContextFactory;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextSessionService;
 use Shopware\Core\System\SalesChannel\File\Loader\SalesChannelFileLoader;
 use Shopware\Core\System\SalesChannel\File\SalesChannelFileRequestPathResolver;
 use Shopware\Core\System\SalesChannel\SalesChannelException;
@@ -82,7 +83,7 @@ class SalesChannelFileController extends AbstractController
             }
         }
 
-        $salesChannelContext = $this->salesChannelContextFactory->create(Uuid::randomHex(), $salesChannelId);
+        $salesChannelContext = $this->salesChannelContextFactory->create(SalesChannelContextSessionService::getNewToken(), $salesChannelId);
         $result = $this->loader->preview($templatePath, $salesChannelContext, $templateOverrides);
 
         if ($result === null) {

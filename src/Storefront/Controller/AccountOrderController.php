@@ -334,7 +334,7 @@ class AccountOrderController extends StorefrontController
             $context = $this->contextService->get(
                 new SalesChannelContextServiceParameters(
                     $context->getSalesChannelId(),
-                    $context->getToken(),
+                    $context->getSessionToken(),
                     $context->getLanguageId()
                 )
             );

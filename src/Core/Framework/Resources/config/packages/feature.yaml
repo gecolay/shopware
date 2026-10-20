@@ -24,6 +24,11 @@ shopware:
         default: false
         toggleable: true
         description: "Experimental! Enable OpenTelemetry metrics"
+      - name: MULTI_SALES_CHANNEL_CONTEXT_SESSIONS
+        default: false
+        major: v6.8.0.0
+        toggleable: true
+        description: "Uses multi sales channel context sessions for customers. Will become the default for next major 6.8"
       - name: FLOW_EXECUTION_AFTER_BUSINESS_PROCESS
         default: false
         major: v6.8.0.0

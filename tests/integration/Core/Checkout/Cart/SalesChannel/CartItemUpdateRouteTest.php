@@ -507,6 +507,7 @@ class CartItemUpdateRouteTest extends TestCase
 
     private function enableAdminAccess(): void
     {
+        /** @var SessionToken */
         $token = $this->browser->getServerParameter('HTTP_SW_CONTEXT_TOKEN');
         $payload = static::getContainer()->get(SalesChannelContextPersister::class)->load($token, $this->ids->get('sales-channel'));
 

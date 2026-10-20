@@ -71,6 +71,7 @@ class CartOrderEventSubscriberTest extends TestCase
         $productBuilder->write(static::getContainer());
         $productId = $this->ids->get('p1');
 
+        /** @var SessionToken */
         $token = $this->browser->getServerParameter('HTTP_SW_CONTEXT_TOKEN');
         $context = $this->contextFactory->create($token, $this->ids->get('sales-channel'), ['customerId' => $customerId]);
 
@@ -88,7 +89,7 @@ class CartOrderEventSubscriberTest extends TestCase
             \sprintf('Initial shipping address (%s) should be default address (%s)', $initialShippingId, $defaultShippingAddressId)
         );
 
-        $cart = $this->cartService->createNew($token);
+        $cart = $this->cartService->createNew($context->getToken());
         $lineItem = new LineItem($productId, LineItem::PRODUCT_LINE_ITEM_TYPE, $productId);
         $lineItem->setStackable(true);
         $lineItem->setQuantity(1);
@@ -96,7 +97,7 @@ class CartOrderEventSubscriberTest extends TestCase
 
         $additionalAddressId = $this->ids->get('additional-address');
         $this->contextPersister->save(
-            $token,
+            $context->getToken(),
             [
                 SalesChannelContextService::SHIPPING_ADDRESS_ID => $additionalAddressId,
                 SalesChannelContextService::BILLING_ADDRESS_ID => $additionalAddressId,
@@ -166,7 +167,7 @@ class CartOrderEventSubscriberTest extends TestCase
         $defaultShippingAddressId = $customer->getDefaultShippingAddressId();
         $defaultBillingAddressId = $customer->getDefaultBillingAddressId();
 
-        $cart = $this->cartService->createNew($token);
+        $cart = $this->cartService->createNew($context->getToken());
         $lineItem = new LineItem($productId, LineItem::PRODUCT_LINE_ITEM_TYPE, $productId);
         $lineItem->setStackable(true);
         $lineItem->setQuantity(1);
@@ -174,7 +175,7 @@ class CartOrderEventSubscriberTest extends TestCase
 
         $additionalAddressId = $this->ids->get('additional-address');
         $this->contextPersister->save(
-            $token,
+            $context->getToken(),
             [
                 SalesChannelContextService::SHIPPING_ADDRESS_ID => $additionalAddressId,
                 SalesChannelContextService::BILLING_ADDRESS_ID => $additionalAddressId,

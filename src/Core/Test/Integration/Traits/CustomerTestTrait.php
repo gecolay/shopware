@@ -5,8 +5,8 @@ namespace Shopware\Core\Test\Integration\Traits;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Test\TestCaseBase\IntegrationTestBehaviour;
 use Shopware\Core\Framework\Test\TestCaseBase\SalesChannelApiTestBehaviour;
-use Shopware\Core\Framework\Util\Random;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextPersister;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
 use Shopware\Core\Test\TestDefaults;
 
 /**
@@ -20,7 +20,7 @@ trait CustomerTestTrait
 
     private function getLoggedInContextToken(string $customerId, string $salesChannelId = TestDefaults::SALES_CHANNEL): string
     {
-        $token = Random::getAlphanumericString(32);
+        $token = SalesChannelContextService::getNewToken();
         static::getContainer()->get(SalesChannelContextPersister::class)->save(
             $token,
             [

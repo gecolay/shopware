@@ -30,10 +30,15 @@ class CustomerLoginEvent extends Event implements SalesChannelAware, ShopwareSal
 {
     final public const EVENT_NAME = 'checkout.customer.login';
 
+    /**
+     * @param ContextToken $contextToken
+     * @param ?SessionToken $sessionToken
+     */
     public function __construct(
         private readonly SalesChannelContext $salesChannelContext,
         private readonly CustomerEntity $customer,
-        private readonly string $contextToken
+        private readonly string $contextToken,
+        private readonly ?string $sessionToken = null,
     ) {
     }
 
@@ -67,9 +72,20 @@ class CustomerLoginEvent extends Event implements SalesChannelAware, ShopwareSal
         return $this->salesChannelContext->getContext();
     }
 
+    /**
+     * @return ContextToken
+     */
     public function getContextToken(): string
     {
         return $this->contextToken;
+    }
+
+    /**
+     * @return SessionToken
+     */
+    public function getSessionToken(): string
+    {
+        return $this->sessionToken ?? $this->salesChannelContext->getSessionToken();
     }
 
     public function getSalesChannelId(): string

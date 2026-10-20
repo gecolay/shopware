@@ -10,12 +10,12 @@ use Shopware\Core\Checkout\Customer\CustomerEntity;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Checkout\Shipping\ShippingMethodEntity;
 use Shopware\Core\Content\MeasurementSystem\MeasurementUnits;
-use Shopware\Core\Content\MeasurementSystem\MeasurementUnitTypeEnum;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Adapter\Twig\SwTwigFunction;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\FieldVisibility;
 use Shopware\Core\Framework\DataAbstractionLayer\Pricing\CashRoundingConfig;
+use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Struct\StateAwareTrait;
 use Shopware\Core\Framework\Struct\Struct;
@@ -41,6 +41,9 @@ class SalesChannelContext extends Struct
 
     protected bool $permissionsLocked = false;
 
+    /**
+     * @deprecated tag:v6.8.0 - Property `imitatingUserId` will be removed, use `session.imitatingUserId` instead
+     */
     protected ?string $imitatingUserId = null;
 
     protected MeasurementUnits $measurementSystem;
@@ -53,11 +56,13 @@ class SalesChannelContext extends Struct
     /**
      * @internal
      *
+     * @param ContextToken $token
      * @param array<string, array<string>> $areaRuleIds
      */
     public function __construct(
         protected Context $context,
         protected string $token,
+        protected SalesChannelContextSession $session,
         private ?string $domainId,
         protected SalesChannelEntity $salesChannel,
         protected CurrencyEntity $currency,
@@ -73,13 +78,7 @@ class SalesChannelContext extends Struct
         protected array $areaRuleIds = [],
         ?MeasurementUnits $measurementSystem = null,
     ) {
-        $this->measurementSystem = $measurementSystem ?? new MeasurementUnits(
-            MeasurementUnits::DEFAULT_MEASUREMENT_SYSTEM,
-            [
-                MeasurementUnitTypeEnum::LENGTH->value => MeasurementUnits::DEFAULT_LENGTH_UNIT,
-                MeasurementUnitTypeEnum::WEIGHT->value => MeasurementUnits::DEFAULT_WEIGHT_UNIT,
-            ]
-        );
+        $this->measurementSystem = $measurementSystem ?? MeasurementUnits::createDefaultUnits();
     }
 
     public function getCurrentCustomerGroup(): CustomerGroupEntity
@@ -152,6 +151,11 @@ class SalesChannelContext extends Struct
     public function getContext(): Context
     {
         return $this->context;
+    }
+
+    public function getSession(): SalesChannelContextSession
+    {
+        return $this->session;
     }
 
     /**
@@ -232,18 +236,36 @@ class SalesChannelContext extends Struct
         $this->permissionsLocked = true;
     }
 
+    /**
+     * @return ContextToken
+     */
     public function getToken(): string
     {
         /**
          * @see SwTwigFunction::getAttribute
-         * Inside Twig rendering context, the token is not allowed to be accessed as it might expose sensitive information
-         * when the data is dumped into outputted HTML.
+         * Inside Twig rendering context, the token is not allowed to be accessed as it might expose sensitive information when the data is dumped into outputted HTML.
          */
         if (FieldVisibility::$isInTwigRenderingContext) {
             throw SalesChannelException::contextTokenNotAccessible();
         }
 
         return $this->token;
+    }
+
+    /**
+     * @return SessionToken
+     */
+    public function getSessionToken(): string
+    {
+        /**
+         * @see SwTwigFunction::getAttribute
+         * Inside Twig rendering context, the session token is not allowed to be accessed as it might expose sensitive information when the data is dumped into outputted HTML.
+         */
+        if (FieldVisibility::$isInTwigRenderingContext) {
+            throw SalesChannelException::contextTokenNotAccessible();
+        }
+
+        return $this->session->getToken();
     }
 
     public function getTaxState(): string
@@ -399,13 +421,26 @@ class SalesChannelContext extends Struct
         return $this->customer?->getId();
     }
 
+    /**
+     * @deprecated 6.8.0 - Use `$this->session->getImitatingUserId` instead
+     */
     public function getImitatingUserId(): ?string
     {
-        return $this->imitatingUserId;
+        Feature::triggerDeprecationOrThrow('v6.8.0.0', Feature::deprecatedMethodMessage(self::class, __METHOD__, 'v6.8.0.0', SalesChannelContextSession::class . '::getImitatingUserId()'));
+
+        /** @deprecated tag:v6.8.0 - `$this->imitatingUserId` getter will be removed, use `$this->session->getImitatingUserId` instead */
+        return $this->session->getImitatingUserId() ?? $this->imitatingUserId;
     }
 
+    /**
+     * @deprecated 6.8.0 - Use `$this->session->setImitatingUserId` instead
+     */
     public function setImitatingUserId(?string $imitatingUserId): void
     {
+        Feature::triggerDeprecationOrThrow('v6.8.0.0', Feature::deprecatedMethodMessage(self::class, __METHOD__, 'v6.8.0.0', SalesChannelContextSession::class . '::setImitatingUserId($imitatingUserId)'));
+
+        $this->session->setImitatingUserId($imitatingUserId);
+        /** @deprecated tag:v6.8.0 - `$this->imitatingUserId` setter will be removed, use `$this->session->setImitatingUserId` instead */
         $this->imitatingUserId = $imitatingUserId;
     }
 

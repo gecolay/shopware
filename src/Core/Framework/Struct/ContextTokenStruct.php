@@ -8,10 +8,16 @@ use Shopware\Core\PlatformRequest;
 #[Package('framework')]
 class ContextTokenStruct extends Struct
 {
+    /**
+     * @param SessionToken $token
+     */
     public function __construct(protected string $token)
     {
     }
 
+    /**
+     * @return SessionToken
+     */
     public function getToken(): string
     {
         return $this->token;

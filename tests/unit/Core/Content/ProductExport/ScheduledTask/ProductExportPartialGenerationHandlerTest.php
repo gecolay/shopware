@@ -2,7 +2,6 @@
 
 namespace Shopware\Tests\Unit\Core\Content\ProductExport\ScheduledTask;
 
-use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -136,15 +135,10 @@ class ProductExportPartialGenerationHandlerTest extends TestCase
 
         $contextPersister = $this->createMock(SalesChannelContextPersister::class);
         $contextPersister->expects($this->once())->method('save');
-
-        $connection = $this->createMock(Connection::class);
-        $connection
+        $contextPersister
             ->expects($this->once())
             ->method('delete')
-            ->with(
-                'sales_channel_api_context',
-                static::callback(static fn (array $criteria): bool => isset($criteria['token']) && \is_string($criteria['token']) && $criteria['token'] !== '')
-            );
+            ->with(static::callback(static fn (string $token): bool => $token !== ''), $this->productExport->getStorefrontSalesChannelId());
 
         $messageBus = new CollectingMessageBus();
 
@@ -156,7 +150,6 @@ class ProductExportPartialGenerationHandlerTest extends TestCase
             $translator,
             $salesChannelContextService,
             $contextPersister,
-            $connection,
         )->__invoke(new ProductExportPartialGeneration($this->productExport->getId(), $this->productExport->getSalesChannelId()));
 
         static::assertCount(0, $messageBus->getMessages());
@@ -207,7 +200,6 @@ class ProductExportPartialGenerationHandlerTest extends TestCase
             static::createStub(AbstractTranslator::class),
             static::createStub(SalesChannelContextServiceInterface::class),
             static::createStub(SalesChannelContextPersister::class),
-            static::createStub(Connection::class),
         )->__invoke(new ProductExportPartialGeneration($this->productExport->getId(), $this->productExport->getSalesChannelId(), 50));
 
         // The next batch is dispatched with the keyset cursor carried by the batch result.
@@ -228,7 +220,6 @@ class ProductExportPartialGenerationHandlerTest extends TestCase
         AbstractTranslator $translator,
         SalesChannelContextServiceInterface $salesChannelContextService,
         SalesChannelContextPersister $contextPersister,
-        Connection $connection,
     ): ProductExportPartialGenerationHandler {
         $salesChannelContextFactory = static::createStub(AbstractSalesChannelContextFactory::class);
         $salesChannelContextFactory
@@ -250,7 +241,6 @@ class ProductExportPartialGenerationHandlerTest extends TestCase
             $translator,
             $salesChannelContextService,
             $contextPersister,
-            $connection,
             $languageLocaleProvider,
             new MockClock()
         );

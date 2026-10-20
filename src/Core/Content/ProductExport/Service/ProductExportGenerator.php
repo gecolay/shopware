@@ -2,7 +2,6 @@
 
 namespace Shopware\Core\Content\ProductExport\Service;
 
-use Doctrine\DBAL\Connection;
 use Monolog\Level;
 use Shopware\Core\Content\Category\Service\CategoryBreadcrumbBuilder;
 use Shopware\Core\Content\Product\ProductDefinition;
@@ -30,7 +29,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\OrFilter;
 use Shopware\Core\Framework\Log\Package;
-use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\Locale\LanguageLocaleCodeProvider;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextPersister;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
@@ -60,7 +58,6 @@ class ProductExportGenerator implements ProductExportGeneratorInterface
         private readonly SalesChannelContextServiceInterface $salesChannelContextService,
         private readonly AbstractTranslator $translator,
         private readonly SalesChannelContextPersister $contextPersister,
-        private readonly Connection $connection,
         private readonly int $readBufferSize,
         private readonly SeoUrlPlaceholderHandlerInterface $seoUrlPlaceholderHandler,
         Environment $twig,
@@ -80,7 +77,7 @@ class ProductExportGenerator implements ProductExportGeneratorInterface
             throw ProductExportException::salesChannelDomainNotFound($productExport->getId());
         }
 
-        $contextToken = Uuid::randomHex();
+        $contextToken = SalesChannelContextService::getNewToken();
         $this->contextPersister->save(
             $contextToken,
             [
@@ -182,7 +179,7 @@ class ProductExportGenerator implements ProductExportGeneratorInterface
             $this->eventDispatcher->dispatch($loggingEvent);
 
             $this->translator->resetInjection();
-            $this->connection->delete('sales_channel_api_context', ['token' => $contextToken]);
+            $this->contextPersister->delete($contextToken, $productExport->getStorefrontSalesChannelId());
 
             throw $exception;
         }
@@ -262,7 +259,7 @@ class ProductExportGenerator implements ProductExportGeneratorInterface
 
         $this->translator->resetInjection();
 
-        $this->connection->delete('sales_channel_api_context', ['token' => $contextToken]);
+        $this->contextPersister->delete($contextToken, $productExport->getStorefrontSalesChannelId());
 
         if ($content === '' && !$exportBehavior->batchMode()) {
             return null;

@@ -13,8 +13,8 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\NotEqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Grouping\FieldGrouping;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\RequestCriteriaBuilder;
 use Shopware\Core\Framework\Log\Package;
-use Shopware\Core\Framework\Util\Random;
 use Shopware\Core\PlatformRequest;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextServiceInterface;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextServiceParameters;
 use Shopware\Core\System\SalesChannel\Entity\SalesChannelRepository;
@@ -46,7 +46,7 @@ class AdminProductStreamController extends AbstractController
         $salesChannelContext = $this->salesChannelContextService->get(
             new SalesChannelContextServiceParameters(
                 $salesChannelId,
-                Random::getAlphanumericString(32),
+                SalesChannelContextService::getNewToken(),
                 $request->headers->get(PlatformRequest::HEADER_LANGUAGE_ID),
                 $context->getCurrencyId()
             )

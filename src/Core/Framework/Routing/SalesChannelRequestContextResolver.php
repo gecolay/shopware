@@ -4,11 +4,11 @@ namespace Shopware\Core\Framework\Routing;
 
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Routing\Event\SalesChannelContextResolvedEvent;
-use Shopware\Core\Framework\Util\Random;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\SalesChannelRequest;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextServiceInterface;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextServiceParameters;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextSessionService;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -46,7 +46,7 @@ class SalesChannelRequestContextResolver implements RequestContextResolverInterf
                 throw RoutingException::missingRequestParameter(PlatformRequest::HEADER_CONTEXT_TOKEN);
             }
 
-            $request->headers->set(PlatformRequest::HEADER_CONTEXT_TOKEN, Random::getAlphanumericString(32));
+            $request->headers->set(PlatformRequest::HEADER_CONTEXT_TOKEN, SalesChannelContextSessionService::getNewToken());
         }
 
         // $skipIfUninitialized = true is intentional: storefront sessions are started before context resolution,
@@ -55,6 +55,7 @@ class SalesChannelRequestContextResolver implements RequestContextResolverInterf
         $session = $session?->isStarted() ? $session : null;
 
         // Retrieve context for current request
+        /** @var SessionToken */
         $usedContextToken = (string) $request->headers->get(PlatformRequest::HEADER_CONTEXT_TOKEN);
 
         $languageId = $request->headers->get(PlatformRequest::HEADER_LANGUAGE_ID, '');

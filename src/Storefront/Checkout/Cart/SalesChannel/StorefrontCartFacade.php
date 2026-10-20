@@ -41,6 +41,9 @@ class StorefrontCartFacade
     ) {
     }
 
+    /**
+     * @param ContextToken $token
+     */
     public function get(
         string $token,
         SalesChannelContext $originalContext,
@@ -62,6 +65,9 @@ class StorefrontCartFacade
         return $this->switchCartMethods($originalCart, $originalContext, $contextShippingMethod, $contextPaymentMethod);
     }
 
+    /**
+     * @param ContextToken $token
+     */
     public function getWithCheckoutGateway(
         Request $request,
         string $token,

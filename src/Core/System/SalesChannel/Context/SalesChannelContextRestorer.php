@@ -108,14 +108,14 @@ class SalesChannelContextRestorer
 
         $options = array_merge($options, $overrideOptions);
 
-        $token = Uuid::randomHex();
+        $token = SalesChannelContextSessionService::getNewToken();
         $salesChannelContext = $this->factory->create(
             $token,
             $salesChannelId,
             $options
         );
 
-        $this->cartRuleLoader->loadByToken($salesChannelContext, $token);
+        $this->cartRuleLoader->loadByToken($salesChannelContext, $salesChannelContext->getToken());
         $salesChannelContext->getContext()->addState(...$context->getStates());
 
         return $salesChannelContext;

@@ -122,6 +122,16 @@ parameters:
             paths:
                 - tests/**
 
+        - # temporary tests are allowed to use untyped context tokens
+            message: '#.*expects ContextToken(\|null)?, .* given.*#'
+            paths:
+                - tests/**
+
+        - # temporary tests are allowed to use untyped session tokens
+            message: '#.*expects SessionToken(\|null)?, .* given.*#'
+            paths:
+                - tests/**
+
         # implementation of symfony flashbag interface which does not define iterable types
         - identifier: missingType.iterableValue
           path: src/Core/Framework/Adapter/Session/StatefulFlashBag.php

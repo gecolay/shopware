@@ -19,6 +19,7 @@ use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\SalesChannelRequest;
 use Shopware\Core\System\SalesChannel\Aggregate\SalesChannelDomain\SalesChannelDomainEntity;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextServiceInterface;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextServiceParameters;
 use Shopware\Core\System\SalesChannel\NoContentResponse;
@@ -64,7 +65,7 @@ class ConvertGuestController
                 'customerId' => Uuid::fromHexToBytes($customerId),
                 'salesChannelId' => Uuid::fromHexToBytes($customer->getSalesChannelId()),
             ]
-        ) ?: Random::getAlphanumericString(32);
+        ) ?: SalesChannelContextService::getNewToken();
 
         $salesChannelContext = $this->contextService->get(
             new SalesChannelContextServiceParameters(

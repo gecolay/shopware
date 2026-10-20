@@ -20,10 +20,15 @@ abstract class AbstractCartPersister
 
     abstract public function getDecorated(): AbstractCartPersister;
 
+    /**
+     * @param ContextToken $token
+     */
     abstract public function load(string $token, SalesChannelContext $context): Cart;
 
     /**
      * Checks if a cart is stored for the given token, without loading and deserializing it.
+     *
+     * @param ContextToken $token
      */
     #[BecomesAbstract(version: 'v6.8.0')]
     public function exists(string $token, SalesChannelContext $context): bool
@@ -38,8 +43,15 @@ abstract class AbstractCartPersister
 
     abstract public function save(Cart $cart, SalesChannelContext $context): void;
 
+    /**
+     * @param ContextToken $token
+     */
     abstract public function delete(string $token, SalesChannelContext $context): void;
 
+    /**
+     * @param ContextToken $oldToken
+     * @param ContextToken $newToken
+     */
     abstract public function replace(string $oldToken, string $newToken, SalesChannelContext $context): void;
 
     /**

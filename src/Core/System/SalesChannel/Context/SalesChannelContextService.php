@@ -83,6 +83,17 @@ class SalesChannelContextService implements SalesChannelContextServiceInterface
     ) {
     }
 
+    /**
+     * Generate a new sales channel context token.
+     *
+     * @return ContextToken
+     */
+    public static function getNewToken(): string
+    {
+        /** @var ContextToken */
+        return Random::getAlphanumericString(32);
+    }
+
     public function get(SalesChannelContextServiceParameters $parameters): SalesChannelContext
     {
         return Profiler::trace('sales-channel-context', function () use ($parameters) {
@@ -91,7 +102,7 @@ class SalesChannelContextService implements SalesChannelContextServiceInterface
             $session = $this->contextPersister->load($token, $parameters->getSalesChannelId());
 
             if ($session['expired'] ?? false) {
-                $token = Random::getAlphanumericString(32);
+                $token = self::getNewToken();
             }
 
             if ($parameters->getLanguageId() !== null) {
@@ -126,7 +137,7 @@ class SalesChannelContextService implements SalesChannelContextServiceInterface
                 $context->addState(Context::ELASTICSEARCH_EXPLAIN_MODE);
             }
 
-            $this->eventDispatcher->dispatch(new SalesChannelContextCreatedEvent($context, $token, $session));
+            $this->eventDispatcher->dispatch(new SalesChannelContextCreatedEvent($context, $context->getSessionToken(), $session));
 
             $currentRequest = $this->requestStack->getCurrentRequest();
 
@@ -148,11 +159,11 @@ class SalesChannelContextService implements SalesChannelContextServiceInterface
 
             // skip cart calculation on ESI sub-requests if it has already been done.
             $esiRequest = $currentRequest?->attributes->has('_esi') ?? false;
-            if (!$this->cartService->hasCart($token) || !$esiRequest) {
+            if (!$this->cartService->hasCart($context->getToken()) || !$esiRequest) {
                 // @deprecated tag:v6.8.0 - Permission will always be true
                 $cart = $context->withPermissions(
                     [AbstractCartPersister::PERSIST_CART_ERROR_PERMISSION => Feature::isActive('DEFERRED_CART_ERRORS')],
-                    fn (SalesChannelContext $context) => $this->cartCalculator->calculateByToken($token, $context),
+                    fn (SalesChannelContext $context) => $this->cartCalculator->calculateByToken($context->getToken(), $context),
                 );
 
                 $this->cartService->setCart($cart);
@@ -170,6 +181,7 @@ class SalesChannelContextService implements SalesChannelContextServiceInterface
     }
 
     /**
+     * @param SessionToken $token
      * @param array<string, mixed> $session
      */
     private function createContext(string $token, SalesChannelContextServiceParameters $parameters, array &$session): SalesChannelContext

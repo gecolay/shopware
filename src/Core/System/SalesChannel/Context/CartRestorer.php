@@ -39,6 +39,8 @@ class CartRestorer
      * create with the customer id in the payload, but not in the main customerId table column.
      * So, the context is not directly referenced to the customer and will not be loaded, if the normal restore-function is used.
      *
+     * @param ContextToken $token
+     * 
      * @internal
      */
     public function restoreByToken(string $token, string $customerId, SalesChannelContext $currentContext): SalesChannelContext
@@ -114,6 +116,9 @@ class CartRestorer
         return $mergedCart;
     }
 
+    /**
+     * @param ?ContextToken $newToken
+     */
     private function replaceContextToken(?string $customerId, SalesChannelContext $currentContext, ?string $newToken = null): SalesChannelContext
     {
         $originalToken = $newToken;

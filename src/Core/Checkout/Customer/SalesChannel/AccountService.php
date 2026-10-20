@@ -83,6 +83,8 @@ class AccountService
     /**
      * @throws BadCredentialsException
      * @throws CustomerNotFoundByIdException
+     *
+     * @return SessionToken
      */
     public function loginById(string $id, SalesChannelContext $context): string
     {
@@ -104,6 +106,8 @@ class AccountService
     /**
      * @throws BadCredentialsException
      * @throws CustomerOptinNotCompletedException
+     *
+     * @return SessionToken
      */
     public function loginByCredentials(string $email, #[\SensitiveParameter] string $password, SalesChannelContext $context): string
     {
@@ -182,6 +186,9 @@ class AccountService
         return $customer;
     }
 
+    /**
+     * @return SessionToken
+     */
     private function _loginByCredentials(string $email, #[\SensitiveParameter] string $password, SalesChannelContext $context): string
     {
         if ($email === '' || $password === '') {
@@ -201,6 +208,9 @@ class AccountService
         return !$customer->getDoubleOptInRegistration() || $customer->getDoubleOptInConfirmDate();
     }
 
+    /**
+     * @return SessionToken
+     */
     private function loginByCustomer(CustomerEntity $customer, SalesChannelContext $context): string
     {
         $this->customerRepository->update([
@@ -211,12 +221,11 @@ class AccountService
         ], $context->getContext());
 
         $context = $this->restorer->restore($customer->getId(), $context);
-        $newToken = $context->getToken();
 
-        $event = new CustomerLoginEvent($context, $customer, $newToken);
+        $event = new CustomerLoginEvent($context, $customer, $context->getToken(), $context->getSessionToken());
         $this->eventDispatcher->dispatch($event);
 
-        return $newToken;
+        return $context->getSessionToken();
     }
 
     /**

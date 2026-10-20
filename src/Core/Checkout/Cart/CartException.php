@@ -118,6 +118,9 @@ class CartException extends HttpException
         );
     }
 
+    /**
+     * @param ContextToken $token
+     */
     public static function tokenNotFound(string $token): self
     {
         return new CartTokenNotFoundException(Response::HTTP_NOT_FOUND, self::TOKEN_NOT_FOUND_CODE, 'Cart with token {{ token }} not found.', ['token' => $token]);
@@ -483,6 +486,9 @@ class CartException extends HttpException
         return new AddressNotFoundException($id);
     }
 
+    /**
+     * @param ContextToken $token
+     */
     public static function hashMismatch(string $token): self
     {
         return new self(
@@ -621,6 +627,9 @@ class CartException extends HttpException
         );
     }
 
+    /**
+     * @param ContextToken $token
+     */
     public static function cartLocked(string $token): self
     {
         return new self(
